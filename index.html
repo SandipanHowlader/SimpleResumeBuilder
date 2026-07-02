@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Resume Builder with Sandipan</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lora:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.maateen.me/kalpurush/font.css" rel="stylesheet">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+</head>
+<body data-active-tab="editor"> <div class="app-container">
+        
+        <div class="mobile-nav no-print">
+            <button class="nav-btn active" onclick="switchTab('editor')" id="tab-editor">
+                <i class="fa-solid fa-pen-to-square"></i><span>Edit</span>
+            </button>
+            <button class="nav-btn" onclick="switchTab('preview')" id="tab-preview">
+                <i class="fa-solid fa-eye"></i><span>Preview</span>
+            </button>
+            <button class="nav-btn" onclick="switchTab('export')" id="tab-export">
+                <i class="fa-solid fa-download"></i><span>Export</span>
+            </button>
+        </div>
+
+        <div class="editor-section no-print" id="editor-panel">
+            
+            <div class="editor-header">
+                <div class="header-top">
+                    <h1><i class="fa-solid fa-layer-group"></i> Welcome to Resume Builder with Sandipan</h1>
+                    <h2><i class="fa-solid fa-layer-group"></i> Document Setup</h2>
+                    <button class="theme-toggle" onclick="toggleDarkMode()" title="Toggle Dark Mode">
+                        <i class="fa-solid fa-moon" id="theme-icon"></i>
+                    </button>
+                </div>
+
+                <div class="progress-container">
+                    <div class="progress-header">
+                        <span>Profile Strength</span>
+                        <span id="progress-text">0%</span>
+                    </div>
+                    <div class="progress-bar-bg"><div class="progress-fill" id="progress-fill"></div></div>
+                </div>
+                
+                <div class="doc-controls">
+                    <div class="control-group">
+                        <label>Typography</label>
+                        <select id="font-selector" onchange="applySettings()">
+                            <option value="'Inter', sans-serif">Modern (Inter)</option>
+                            <option value="'Lora', serif">Formal (Lora)</option>
+                            <option value="Arial, sans-serif">Classic (Arial)</option>
+                            <option value="'Kalpurush', Arial, sans-serif">Kalpurush (Assamese/Bengali)</option>
+                        </select>
+                    </div>
+                    <div class="control-group">
+                        <label>Accent Color</label>
+                        <div class="color-picker-wrap">
+                            <input type="color" id="theme-color" value="#2563eb" oninput="applySettings()">
+                            <span id="color-hex">#2563EB</span>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label>Page Style</label>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="border-toggle" onchange="applySettings()">
+                            <span class="slider"></span>
+                            <span class="toggle-label">Add Border</span>
+                        </label>
+                    </div>
+                    <div class="control-group">
+                        <label>Passport Photo</label>
+                        <input type="file" id="in-photo" accept="image/*" onchange="uploadPhoto(event)" class="file-input">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="section-card">
+                <div class="section-title-bar">
+                    <h3><i class="fa-solid fa-user"></i> Personal Information</h3>
+                    <button class="btn-clear" onclick="clearForm()"><i class="fa-solid fa-trash-can"></i> Clear All</button>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group full-width"><input type="text" id="in-name" oninput="updateData()" placeholder=" "><label>Full Name</label></div>
+                    <div class="form-group"><input type="text" id="in-fname" oninput="updateData()" placeholder=" "><label>Father's Name</label></div>
+                    <div class="form-group"><input type="text" id="in-mname" oninput="updateData()" placeholder=" "><label>Mother's Name</label></div>
+                    <div class="form-group"><input type="date" id="in-dob" oninput="updateData()" placeholder=" "><label class="active-label">Date of Birth</label></div>
+                    <div class="form-group">
+                        <select id="in-sex" oninput="updateData()"><option value=""></option><option value="Female">Female</option><option value="Male">Male</option><option value="Other">Other</option></select>
+                        <label class="active-label">Sex</label>
+                    </div>
+                    <div class="form-group"><input type="text" id="in-blood" oninput="updateData()" placeholder=" "><label>Blood Group</label></div>
+                    <div class="form-group">
+                        <select id="in-marital" oninput="updateData()"><option value=""></option><option value="Unmarried">Unmarried</option><option value="Married">Married</option></select>
+                        <label class="active-label">Marital Status</label>
+                    </div>
+                    <div class="form-group"><input type="text" id="in-nationality" oninput="updateData()" value="Indian" placeholder=" "><label>Nationality</label></div>
+                    <div class="form-group"><input type="text" id="in-religion" oninput="updateData()" placeholder=" "><label>Religion</label></div>
+                    <div class="form-group"><input type="text" id="in-caste" oninput="updateData()" placeholder=" "><label>Caste</label></div>
+                </div>
+            </div>
+
+            <div class="section-card">
+                <div class="section-title-bar"><h3><i class="fa-solid fa-address-book"></i> Contact Details</h3></div>
+                <div class="form-grid">
+                    <div class="form-group full-width"><textarea id="in-address" rows="2" placeholder=" " oninput="updateData()"></textarea><label>Full Address</label></div>
+                    <div class="form-group full-width"><input type="tel" id="in-contact" oninput="updateData()" placeholder=" "><label>Contact No</label></div>
+                </div>
+            </div>
+
+            <div class="section-card">
+                <div class="section-title-bar"><h3><i class="fa-solid fa-graduation-cap"></i> Academic Qualification</h3></div>
+                <div class="form-grid">
+                    <div class="form-group"><input type="text" id="in-10-board" oninput="updateData()" placeholder=" "><label>10th Board</label></div>
+                    <div class="form-group"><input type="text" id="in-10-year" oninput="updateData()" placeholder=" "><label>Passing Year</label></div>
+                    <div class="form-group"><input type="text" id="in-10-perc" oninput="updateData()" placeholder=" "><label>Percentage</label></div>
+                    
+                    <div class="form-group"><input type="text" id="in-12-board" oninput="updateData()" placeholder=" "><label>12th Board</label></div>
+                    <div class="form-group"><input type="text" id="in-12-year" oninput="updateData()" placeholder=" "><label>Passing Year</label></div>
+                    <div class="form-group"><input type="text" id="in-12-perc" oninput="updateData()" placeholder=" "><label>Percentage</label></div>
+
+                    <div class="form-group"><input type="text" id="in-deg-board" oninput="updateData()" placeholder=" "><label>Graduation University</label></div>
+                    <div class="form-group"><input type="text" id="in-deg-year" oninput="updateData()" placeholder=" "><label>Passing Year</label></div>
+                    <div class="form-group"><input type="text" id="in-deg-perc" oninput="updateData()" placeholder=" "><label>Percentage/GPA</label></div>
+                </div>
+            </div>
+
+            <div class="section-card">
+                <div class="section-title-bar"><h3><i class="fa-solid fa-briefcase"></i> Other Details & Copyright</h3></div>
+                <div class="form-grid">
+                    <div class="form-group full-width"><textarea id="in-work" rows="2" placeholder=" " oninput="updateData()"></textarea><label>Work Experience</label></div>
+                    <div class="form-group"><input type="text" id="in-hobbies" oninput="updateData()" placeholder=" "><label>Hobbies</label></div>
+                    <div class="form-group"><input type="text" id="in-lang" oninput="updateData()" placeholder=" "><label>Languages Known</label></div>
+                    <div class="form-group"><input type="date" id="in-date" oninput="updateData()" placeholder=" "><label class="active-label">Signature Date</label></div>
+                    <div class="form-group full-width"><input type="text" id="in-copyright" oninput="updateData()" value="© 2026 Learn & Conquer" placeholder=" "><label>Document Copyright Text</label></div>
+                </div>
+            </div>
+
+            <div id="export-panel" class="section-card" style="border: 2px solid var(--accent-color);">
+                <div class="section-title-bar"><h3 style="color: var(--accent-color);"><i class="fa-solid fa-download"></i> Export Document</h3></div>
+                <div class="actions">
+                    <button onclick="downloadPDF()" class="btn btn-primary"><i class="fa-solid fa-file-pdf"></i> PDF</button>
+                    <button onclick="downloadImage()" class="btn" style="background: #8b5cf6; color: white;"><i class="fa-solid fa-image"></i> Image</button>
+                    <button onclick="downloadWord()" class="btn" style="background: #10b981; color: white;"><i class="fa-solid fa-file-word"></i> Word</button>
+                </div>
+            </div>
+            
+            <div class="app-footer">Powered by Learn & Conquer Engine</div>
+        </div>
+
+        <div class="preview-section" id="preview-panel">
+            <div class="preview-wrapper">
+                <div id="resume-document" class="resume-paper">
+                    
+                    <div class="doc-accent-strip" id="doc-strip"></div>
+                    <div class="doc-border-wrap" id="doc-border">
+                        
+                        <div class="doc-header">
+                            <div class="header-content"><h1>BIO-DATA</h1></div>
+                            <div class="photo-box" id="out-photo"><span>Photo</span></div>
+                        </div>
+
+                        <div class="doc-body">
+                            <table class="bio-layout-table">
+                                <tr><td class="label">Name</td><td class="colon">:</td><td id="out-name" class="value fw-bold doc-color-text"></td></tr>
+                                <tr><td class="label">Father's Name</td><td class="colon">:</td><td id="out-fname" class="value"></td></tr>
+                                <tr><td class="label">Mother's Name</td><td class="colon">:</td><td id="out-mname" class="value"></td></tr>
+                                <tr><td class="label">Date of Birth</td><td class="colon">:</td><td id="out-dob" class="value"></td></tr>
+                                <tr><td class="label">Sex</td><td class="colon">:</td><td id="out-sex" class="value"></td></tr>
+                                <tr><td class="label">Blood Group</td><td class="colon">:</td><td id="out-blood" class="value"></td></tr>
+                                <tr><td class="label">Address</td><td class="colon">:</td><td id="out-address" class="value"></td></tr>
+                                <tr><td class="label">Contact No</td><td class="colon">:</td><td id="out-contact" class="value fw-bold"></td></tr>
+                                <tr><td class="label">Caste</td><td class="colon">:</td><td id="out-caste" class="value"></td></tr>
+                                <tr><td class="label">Religion</td><td class="colon">:</td><td id="out-religion" class="value"></td></tr>
+                                <tr><td class="label">Nationality</td><td class="colon">:</td><td id="out-nationality" class="value"></td></tr>
+                                <tr><td class="label">Marital Status</td><td class="colon">:</td><td id="out-marital" class="value"></td></tr>
+                            </table>
+
+                            <div class="doc-section-title">Academic Qualification</div>
+                            <table class="academic-table">
+                                <thead>
+                                    <tr>
+                                        <th>Examination</th>
+                                        <th>Board / University</th>
+                                        <th>Year of Passing</th>
+                                        <th>Percentage</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td>10th</td><td id="out-10-board"></td><td id="out-10-year"></td><td id="out-10-perc"></td></tr>
+                                    <tr><td>12th</td><td id="out-12-board"></td><td id="out-12-year"></td><td id="out-12-perc"></td></tr>
+                                    <tr><td>Graduation</td><td id="out-deg-board"></td><td id="out-deg-year"></td><td id="out-deg-perc"></td></tr>
+                                </tbody>
+                            </table>
+
+                            <table class="bio-layout-table" style="margin-top: 20px;">
+                                <tr><td class="label">Work Experience</td><td class="colon">:</td><td id="out-work" class="value"></td></tr>
+                                <tr><td class="label">Hobbies</td><td class="colon">:</td><td id="out-hobbies" class="value"></td></tr>
+                                <tr><td class="label">Language known</td><td class="colon">:</td><td id="out-lang" class="value"></td></tr>
+                            </table>
+
+                            <div class="footer-signatures">
+                                <div class="date-box"><span class="label">Date</span> <span class="colon">:</span> <span id="out-date" class="value"></span></div>
+                                <div class="signature-box">
+                                    <div class="signature-line"></div>
+                                    <div class="signature-text">Signature</div>
+                                </div>
+                            </div>
+                            
+                            <div class="document-copyright"><span id="out-copyright">© 2026 Sandipan Howlader</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="toast-container" class="toast-container"></div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
