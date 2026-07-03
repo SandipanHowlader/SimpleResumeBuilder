@@ -13,12 +13,16 @@
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lora:wght@400;600&display=swap" rel="stylesheet">
-    <link href="https://fonts.maateen.me/kalpurush/font.css" rel="stylesheet">
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 <body data-active-tab="editor">
+
+    <datalist id="list-blood"><option value="A+"><option value="A-"><option value="B+"><option value="B-"><option value="O+"><option value="O-"><option value="AB+"><option value="AB-"></datalist>
+    <datalist id="list-religion"><option value="Hinduism"><option value="Islam"><option value="Christianity"><option value="Sikhism"><option value="Buddhism"><option value="Jainism"></datalist>
+    <datalist id="list-caste"><option value="General (UR)"><option value="OBC"><option value="MOBC"><option value="SC"><option value="ST(P)"><option value="ST(H)"></datalist>
 
     <div class="app-container">
         
@@ -28,6 +32,7 @@
             <button class="nav-btn" onclick="switchTab('export')" id="tab-export"><i class="fa-solid fa-download"></i><span>Export</span></button>
         </div>
 
+        <!-- EDITOR SECTION -->
         <div class="editor-section no-print" id="editor-panel">
             
             <div class="editor-header">
@@ -53,49 +58,111 @@
                             <option value="layout-classic">Classic Bio-data</option>
                             <option value="layout-modern">Modern Corporate</option>
                             <option value="layout-minimal">Minimalist Elegance</option>
+                            <option value="layout-split">Split Professional (2-Column)</option>
                         </select>
                     </div>
+                    
+                    <div class="control-group full-row slider-grid" style="background: var(--bg-color); padding: 15px; border-radius: 8px; border: 1px solid var(--border-color);">
+                        <div class="slider-box">
+                            <span class="slider-label"><i class="fa-solid fa-arrows-up-down"></i> Row Spacing</span>
+                            <input type="range" id="doc-spacing" min="2" max="16" value="6" oninput="applySettings()">
+                        </div>
+                        <div class="slider-box">
+                            <span class="slider-label"><i class="fa-solid fa-text-height"></i> Font Size</span>
+                            <input type="range" id="doc-font-size" min="12" max="18" value="15" oninput="applySettings()">
+                        </div>
+                        <div class="slider-box full-row">
+                            <span class="slider-label"><i class="fa-solid fa-expand"></i> Page Margins</span>
+                            <input type="range" id="doc-margin" min="20" max="60" value="40" oninput="applySettings()">
+                        </div>
+                    </div>
+
                     <div class="control-group">
                         <label>Typography</label>
                         <select id="font-selector" onchange="applySettings()">
                             <option value="'Inter', sans-serif">Modern (Inter)</option>
                             <option value="'Lora', serif">Formal (Lora)</option>
                             <option value="Arial, sans-serif">Classic (Arial)</option>
-                            <option value="'Kalpurush', Arial, sans-serif">Kalpurush (Assamese/Bengali)</option>
+                            <option value="'Times New Roman', Times, serif">Traditional (Times)</option>
                         </select>
                     </div>
+                    
                     <div class="control-group">
-                        <label>Accent Color</label>
-                        <div class="color-picker-wrap">
-                            <input type="color" id="theme-color" value="#2563eb" oninput="applySettings()">
-                            <span id="color-hex">#2563EB</span>
+                        <label>Date Format</label>
+                        <select id="date-format-selector" onchange="updateData()">
+                            <option value="formal">Formal (3rd July 2026)</option>
+                            <option value="standard">Standard (03/07/2026)</option>
+                            <option value="us">US (July 03, 2026)</option>
+                        </select>
+                    </div>
+
+                    <div class="control-group full-row">
+                        <label>Accent Color & Theme</label>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <div class="color-picker-wrap">
+                                <input type="color" id="theme-color" value="#2563eb" oninput="applySettings()">
+                                <span id="color-hex">#2563EB</span>
+                            </div>
+                            <!-- NEW: Premium Preset Swatches -->
+                            <div class="color-swatches">
+                                <div class="swatch" style="background: #2563eb;" onclick="setPresetColor('#2563eb')" title="Royal Blue"></div>
+                                <div class="swatch" style="background: #10b981;" onclick="setPresetColor('#10b981')" title="Emerald"></div>
+                                <div class="swatch" style="background: #e11d48;" onclick="setPresetColor('#e11d48')" title="Crimson"></div>
+                                <div class="swatch" style="background: #475569;" onclick="setPresetColor('#475569')" title="Slate"></div>
+                                <div class="swatch" style="background: #0f172a;" onclick="setPresetColor('#0f172a')" title="Midnight"></div>
+                            </div>
                         </div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label>Paper Size</label>
+                        <select id="paper-size-selector" onchange="applySettings()">
+                            <option value="A4">A4 (Standard)</option>
+                            <option value="US-Letter">US Letter</option>
+                        </select>
                     </div>
                     <div class="control-group">
                         <label>Page Style</label>
                         <label class="toggle-switch"><input type="checkbox" id="border-toggle" onchange="applySettings()"><span class="slider"></span><span class="toggle-label">Add Border</span></label>
                     </div>
                     <div class="control-group">
+                        <label>Platform Watermark</label>
+                        <label class="toggle-switch"><input type="checkbox" id="watermark-toggle" onchange="applySettings()" checked><span class="slider"></span><span class="toggle-label">Enable Brand</span></label>
+                    </div>
+                    <div class="control-group">
                         <label>Pagination Guide</label>
-                        <label class="toggle-switch"><input type="checkbox" id="page-break-toggle" onchange="applySettings()"><span class="slider"></span><span class="toggle-label">Show A4 Lines</span></label>
+                        <label class="toggle-switch"><input type="checkbox" id="page-break-toggle" onchange="applySettings()"><span class="slider"></span><span class="toggle-label">Show Page Lines</span></label>
                     </div>
                     
                     <div class="control-group full-row" style="border-top: 1px dashed var(--border-color); padding-top: 15px; margin-top: 5px;">
-                        <label><i class="fa-solid fa-camera-retro"></i> Image Studio</label>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <label style="margin: 0;"><i class="fa-solid fa-camera-retro"></i> Image Studio</label>
+                            <select id="photo-shape" onchange="applySettings()" style="width: auto; padding: 4px 8px; font-size: 0.8rem; height: auto;">
+                                <option value="0%">Square</option>
+                                <option value="12px">Rounded</option>
+                                <option value="50%">Circular</option>
+                            </select>
+                        </div>
+                        
                         <div class="dropzone" id="photo-dropzone" onclick="document.getElementById('in-photo').click()">
                             <i class="fa-solid fa-cloud-arrow-up"></i>
-                            <span id="photo-status-text">Drag & Drop or Click to Upload Photo</span>
+                            <span id="photo-status-text">Drag & Drop or Click to Upload</span>
                             <input type="file" id="in-photo" accept="image/*" onchange="uploadPhoto(event)" style="display: none;">
                         </div>
                         
+                        <!-- NEW: Advanced Image Framing Engine -->
                         <div id="image-editor-controls" class="image-editor" style="display: none;">
-                            <div class="slider-group">
+                            <div class="slider-group" style="margin-bottom: 10px;">
+                                <span><i class="fa-solid fa-magnifying-glass-plus"></i> Scale</span>
+                                <input type="range" id="filter-scale" min="100" max="250" value="100" oninput="processCanvasImage()" style="margin-left: 15px; width: 100%;">
+                            </div>
+                            <div class="slider-group" style="margin-bottom: 10px;">
                                 <span><i class="fa-solid fa-sun"></i> Brightness</span>
-                                <input type="range" id="filter-bright" min="50" max="150" value="100" oninput="processCanvasImage()">
+                                <input type="range" id="filter-bright" min="50" max="150" value="100" oninput="processCanvasImage()" style="margin-left: 15px; width: 100%;">
                             </div>
                             <div class="slider-group">
                                 <span><i class="fa-solid fa-circle-half-stroke"></i> Contrast</span>
-                                <input type="range" id="filter-contrast" min="50" max="150" value="100" oninput="processCanvasImage()">
+                                <input type="range" id="filter-contrast" min="50" max="150" value="100" oninput="processCanvasImage()" style="margin-left: 15px; width: 100%;">
                             </div>
                             <canvas id="photo-canvas" style="display: none;"></canvas>
                         </div>
@@ -109,24 +176,27 @@
                 </div>
                 <div class="form-grid">
                     <div class="form-group full-width"><input type="text" id="in-name" oninput="updateData()" placeholder=" "><label>Full Name *</label></div>
-                    <div class="form-group"><div class="input-wrap"><input type="text" id="in-fname" oninput="updateData()" placeholder=" "><label>Father's Name</label></div><button class="visibility-toggle" onclick="toggleVisibility('row-fname', this)"><i class="fa-solid fa-eye"></i></button></div>
+                    <div class="form-group"><div class="input-wrap"><input type="text" id="in-fname" oninput="updateData()" placeholder=" "><label>Father's Name</label></div><button class="visibility-toggle" onclick="toggleVisibility('row-fname', this)" title="Toggle Visibility"><i class="fa-solid fa-eye"></i></button></div>
                     <div class="form-group"><div class="input-wrap"><input type="text" id="in-mname" oninput="updateData()" placeholder=" "><label>Mother's Name</label></div><button class="visibility-toggle" onclick="toggleVisibility('row-mname', this)"><i class="fa-solid fa-eye"></i></button></div>
                     <div class="form-group"><div class="input-wrap"><input type="date" id="in-dob" oninput="updateData()" placeholder=" "><label class="active-label">Date of Birth</label></div><button class="visibility-toggle" onclick="toggleVisibility('row-dob', this)"><i class="fa-solid fa-eye"></i></button></div>
                     <div class="form-group"><div class="input-wrap"><select id="in-sex" oninput="updateData()"><option value=""></option><option value="Female">Female</option><option value="Male">Male</option><option value="Other">Other</option></select><label class="active-label">Sex</label></div><button class="visibility-toggle" onclick="toggleVisibility('row-sex', this)"><i class="fa-solid fa-eye"></i></button></div>
-                    <div class="form-group"><div class="input-wrap"><input type="text" id="in-blood" oninput="updateData()" placeholder=" "><label>Blood Group</label></div><button class="visibility-toggle" onclick="toggleVisibility('row-blood', this)"><i class="fa-solid fa-eye"></i></button></div>
-                    <div class="form-group"><div class="input-wrap"><select id="in-marital" oninput="updateData()"><option value=""></option><option value="Unmarried">Unmarried</option><option value="Married">Married</option></select><label class="active-label">Marital Status</label></div><button class="visibility-toggle" onclick="toggleVisibility('row-marital', this)"><i class="fa-solid fa-eye"></i></button></div>
+                    <div class="form-group"><div class="input-wrap"><input type="text" id="in-blood" list="list-blood" oninput="updateData()" placeholder=" "><label>Blood Group</label></div><button class="visibility-toggle" onclick="toggleVisibility('row-blood', this)"><i class="fa-solid fa-eye"></i></button></div>
+                    <div class="form-group"><div class="input-wrap"><select id="in-marital" oninput="updateData()"><option value=""></option><option value="Unmarried">Unmarried</option><option value="Married">Married</option><option value="Divorced">Divorced</option></select><label class="active-label">Marital Status</label></div><button class="visibility-toggle" onclick="toggleVisibility('row-marital', this)"><i class="fa-solid fa-eye"></i></button></div>
                     <div class="form-group"><div class="input-wrap"><input type="text" id="in-nationality" oninput="updateData()" value="Indian" placeholder=" "><label>Nationality</label></div><button class="visibility-toggle" onclick="toggleVisibility('row-nationality', this)"><i class="fa-solid fa-eye"></i></button></div>
-                    <div class="form-group"><div class="input-wrap"><input type="text" id="in-religion" oninput="updateData()" placeholder=" "><label>Religion</label></div><button class="visibility-toggle" onclick="toggleVisibility('row-religion', this)"><i class="fa-solid fa-eye"></i></button></div>
-                    <div class="form-group"><div class="input-wrap"><input type="text" id="in-caste" oninput="updateData()" placeholder=" "><label>Caste</label></div><button class="visibility-toggle" onclick="toggleVisibility('row-caste', this)"><i class="fa-solid fa-eye"></i></button></div>
+                    <div class="form-group"><div class="input-wrap"><input type="text" id="in-religion" list="list-religion" oninput="updateData()" placeholder=" "><label>Religion</label></div><button class="visibility-toggle" onclick="toggleVisibility('row-religion', this)"><i class="fa-solid fa-eye"></i></button></div>
+                    <div class="form-group"><div class="input-wrap"><input type="text" id="in-caste" list="list-caste" oninput="updateData()" placeholder=" "><label>Caste</label></div><button class="visibility-toggle" onclick="toggleVisibility('row-caste', this)"><i class="fa-solid fa-eye"></i></button></div>
                 </div>
             </div>
 
             <div class="section-card">
-                <div class="section-title-bar"><h3><i class="fa-solid fa-address-book"></i> Contact Details</h3></div>
+                <div class="section-title-bar">
+                    <h3><i class="fa-solid fa-address-book"></i> Contact Details</h3>
+                </div>
                 <div class="form-grid">
                     <div class="form-group full-width"><textarea id="in-address" rows="2" placeholder=" " oninput="updateData()"></textarea><label>Full Address</label></div>
                     <div class="form-group"><input type="tel" id="in-contact" oninput="updateData()" placeholder=" "><label>Contact No *</label></div>
                     <div class="form-group"><div class="input-wrap"><input type="email" id="in-email" oninput="updateData()" placeholder=" "><label>Email Address</label></div><button class="visibility-toggle" onclick="toggleVisibility('row-email', this)"><i class="fa-solid fa-eye"></i></button></div>
+                    <div class="form-group full-width" style="margin-top: 5px;"><input type="url" id="in-qr" oninput="updateData()" placeholder="https://linkedin.com/in/..."><label>Portfolio/LinkedIn URL (Generates QR)</label></div>
                 </div>
             </div>
 
@@ -154,21 +224,36 @@
                     <div class="form-group"><input type="date" id="in-date" oninput="updateData()" placeholder=" "><label class="active-label">Signature Date</label></div>
                     <div class="form-group"><input type="text" id="in-watermark" oninput="updateData()" value="" placeholder=" "><label>Watermark Text</label></div>
                     <div class="form-group full-width"><input type="text" id="in-copyright" oninput="updateData()" value="" placeholder=" "><label>Footer Copyright</label></div>
+                    
+                    <div class="form-group full-width signature-pad-box">
+                        <div class="signature-pad-header">
+                            <label><i class="fa-solid fa-pen-nib"></i> E-Signature Pad</label>
+                            <div style="display:flex; gap:10px; align-items:center;">
+                                <select id="sig-color" onchange="updateSignatureColor()" style="padding: 4px; font-size:0.75rem; border: 1px solid var(--border-color); border-radius:4px; background: var(--input-bg); color: var(--text-main);">
+                                    <option value="#000000">Black Ink</option>
+                                    <option value="#2563eb">Blue Ink</option>
+                                </select>
+                                <button onclick="clearSignature()" class="btn-text" style="padding: 4px 10px; font-size: 0.75rem; flex: none; border-color: rgba(239, 68, 68, 0.4); color: #ef4444;"><i class="fa-solid fa-eraser"></i> Clear</button>
+                            </div>
+                        </div>
+                        <canvas id="sig-canvas" width="400" height="150"></canvas>
+                    </div>
                 </div>
             </div>
 
-            <div id="export-panel" class="section-card" style="border: 2px solid var(--accent-color);">
-                <div class="section-title-bar"><h3 style="color: var(--accent-color);"><i class="fa-solid fa-download"></i> Export Document</h3></div>
-                
-                <div class="progress-container" style="margin-top: 10px;">
-                    <div class="progress-header"><span>Profile Strength</span><span id="progress-text-export">0%</span></div>
-                    <div class="progress-bar-bg"><div class="progress-fill" id="progress-fill-export"></div></div>
+            <div id="export-panel" class="section-card export-card">
+                <div class="section-title-bar">
+                    <h3 style="color: var(--accent-color);"><i class="fa-solid fa-download"></i> Export Document</h3>
+                    <div class="progress-box">
+                        <span id="progress-text-export">0% Complete</span>
+                        <div class="progress-bar-bg"><div class="progress-fill" id="progress-fill-export"></div></div>
+                    </div>
                 </div>
                 
                 <div class="actions">
-                    <button onclick="downloadPDF()" class="btn btn-primary"><i class="fa-solid fa-file-pdf"></i> PDF</button>
-                    <button onclick="downloadImage()" class="btn" style="background: #8b5cf6; color: white;"><i class="fa-solid fa-image"></i> Image</button>
-                    <button onclick="downloadWord()" class="btn" style="background: #10b981; color: white;"><i class="fa-solid fa-file-word"></i> Word</button>
+                    <button onclick="downloadPDF()" class="btn btn-primary"><i class="fa-solid fa-file-pdf"></i> PDF File</button>
+                    <button onclick="downloadImage()" class="btn btn-image"><i class="fa-solid fa-image"></i> High-Res Image</button>
+                    <button onclick="downloadWord()" class="btn btn-word"><i class="fa-solid fa-file-word"></i> Word Doc</button>
                 </div>
                 
                 <div class="data-management">
@@ -180,6 +265,7 @@
             <div class="app-footer">Powered by Sandipan Howlader</div>
         </div>
 
+        <!-- PREVIEW SECTION -->
         <div class="preview-section" id="preview-panel">
             
             <div class="zoom-controls no-print">
@@ -192,60 +278,70 @@
             <div class="preview-wrapper">
                 
                 <div id="resume-document" class="resume-paper layout-classic has-watermark">
+                    <!-- Dynamic CSS rules will handle A4 vs US Letter -->
                     <div class="doc-accent-strip" id="doc-strip"></div>
                     <div class="doc-watermark" id="out-watermark"></div>
                     
                     <div class="doc-border-wrap" id="doc-border">
                         
                         <div class="doc-header">
-                            <div class="header-content"><h1>BIO-DATA</h1></div>
+                            <div id="out-qrcode" class="qr-box"></div>
+                            <div class="header-content"><h1 id="doc-main-title">BIO-DATA</h1></div>
                             <div class="photo-box" id="out-photo"><span>Photo</span></div>
                         </div>
 
-                        <div class="doc-body">
-                            <table class="bio-layout-table">
-                                <tr><td class="label">Name</td><td class="colon">:</td><td id="out-name" class="value fw-bold doc-color-text"></td></tr>
-                                <tr id="row-fname"><td class="label">Father's Name</td><td class="colon">:</td><td id="out-fname" class="value"></td></tr>
-                                <tr id="row-mname"><td class="label">Mother's Name</td><td class="colon">:</td><td id="out-mname" class="value"></td></tr>
-                                <tr id="row-dob"><td class="label">Date of Birth</td><td class="colon">:</td><td id="out-dob" class="value"></td></tr>
-                                <tr id="row-sex"><td class="label">Sex</td><td class="colon">:</td><td id="out-sex" class="value"></td></tr>
-                                <tr id="row-blood"><td class="label">Blood Group</td><td class="colon">:</td><td id="out-blood" class="value"></td></tr>
-                                <tr><td class="label">Address</td><td class="colon">:</td><td id="out-address" class="value"></td></tr>
-                                <tr><td class="label">Contact No</td><td class="colon">:</td><td id="out-contact" class="value fw-bold"></td></tr>
-                                <tr id="row-email"><td class="label">Email</td><td class="colon">:</td><td id="out-email" class="value"></td></tr>
-                                <tr id="row-caste"><td class="label">Caste</td><td class="colon">:</td><td id="out-caste" class="value"></td></tr>
-                                <tr id="row-religion"><td class="label">Religion</td><td class="colon">:</td><td id="out-religion" class="value"></td></tr>
-                                <tr id="row-nationality"><td class="label">Nationality</td><td class="colon">:</td><td id="out-nationality" class="value"></td></tr>
-                                <tr id="row-marital"><td class="label">Marital Status</td><td class="colon">:</td><td id="out-marital" class="value"></td></tr>
-                            </table>
-
-                            <div id="section-academic">
-                                <div class="doc-section-title">Academic Qualification</div>
-                                <table class="academic-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Examination</th>
-                                            <th>Board / University</th>
-                                            <th>Year of Passing</th>
-                                            <th>Percentage / GPA</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="out-academic-body"></tbody>
+                        <div class="doc-body" id="doc-body-grid">
+                            
+                            <div class="doc-col-left">
+                                <div class="doc-section-title split-only">Personal Details</div>
+                                <table class="bio-layout-table">
+                                    <tr><td class="label">Name</td><td class="colon">:</td><td id="out-name" class="value fw-bold doc-color-text"></td></tr>
+                                    <tr id="row-fname"><td class="label">Father's Name</td><td class="colon">:</td><td id="out-fname" class="value"></td></tr>
+                                    <tr id="row-mname"><td class="label">Mother's Name</td><td class="colon">:</td><td id="out-mname" class="value"></td></tr>
+                                    <tr id="row-dob"><td class="label">Date of Birth</td><td class="colon">:</td><td id="out-dob" class="value"></td></tr>
+                                    <tr id="row-sex"><td class="label">Sex</td><td class="colon">:</td><td id="out-sex" class="value"></td></tr>
+                                    <tr id="row-blood"><td class="label">Blood Group</td><td class="colon">:</td><td id="out-blood" class="value"></td></tr>
+                                    <tr><td class="label">Address</td><td class="colon">:</td><td id="out-address" class="value"></td></tr>
+                                    <tr><td class="label">Contact No</td><td class="colon">:</td><td id="out-contact" class="value fw-bold"></td></tr>
+                                    <tr id="row-email"><td class="label">Email</td><td class="colon">:</td><td id="out-email" class="value"></td></tr>
+                                    <tr id="row-caste"><td class="label">Caste</td><td class="colon">:</td><td id="out-caste" class="value"></td></tr>
+                                    <tr id="row-religion"><td class="label">Religion</td><td class="colon">:</td><td id="out-religion" class="value"></td></tr>
+                                    <tr id="row-nationality"><td class="label">Nationality</td><td class="colon">:</td><td id="out-nationality" class="value"></td></tr>
+                                    <tr id="row-marital"><td class="label">Marital Status</td><td class="colon">:</td><td id="out-marital" class="value"></td></tr>
                                 </table>
                             </div>
 
-                            <div class="doc-section-title">Other Details</div>
-                            <table class="bio-layout-table" id="out-custom-body">
-                                <tr id="row-work"><td class="label">Work Experience</td><td class="colon">:</td><td id="out-work" class="value"></td></tr>
-                                <tr id="row-hobbies"><td class="label">Hobbies</td><td class="colon">:</td><td id="out-hobbies" class="value"></td></tr>
-                                <tr id="row-lang"><td class="label">Language known</td><td class="colon">:</td><td id="out-lang" class="value"></td></tr>
+                            <div class="doc-col-right">
+                                <div id="section-academic">
+                                    <div class="doc-section-title">Academic Qualification</div>
+                                    <table class="academic-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Examination</th>
+                                                <th>Board / University</th>
+                                                <th>Stream/Subject(s)</th>
+                                                <th>Year of Passing</th>
+                                                <th>Percentage / GPA</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="out-academic-body"></tbody>
+                                    </table>
+                                </div>
+
+                                <div class="doc-section-title">Other Details</div>
+                                <table class="bio-layout-table" id="out-custom-body">
+                                    <tr id="row-work"><td class="label">Work Experience</td><td class="colon">:</td><td id="out-work" class="value"></td></tr>
+                                    <tr id="row-hobbies"><td class="label">Hobbies</td><td class="colon">:</td><td id="out-hobbies" class="value"></td></tr>
+                                    <tr id="row-lang"><td class="label">Language known</td><td class="colon">:</td><td id="out-lang" class="value"></td></tr>
                                 </table>
 
-                            <div class="footer-signatures">
-                                <div class="date-box"><span class="label">Date</span> <span class="colon">:</span> <span id="out-date" class="value"></span></div>
-                                <div class="signature-box">
-                                    <div class="signature-line"></div>
-                                    <div class="signature-text">Signature</div>
+                                <div class="footer-signatures">
+                                    <div class="date-box"><span class="label">Date</span> <span class="colon">:</span> <span id="out-date" class="value"></span></div>
+                                    <div class="signature-box">
+                                        <img id="out-signature" class="out-signature-img" style="display: none;">
+                                        <div class="signature-line"></div>
+                                        <div class="signature-text">Signature</div>
+                                    </div>
                                 </div>
                             </div>
                             
