@@ -226,7 +226,7 @@ function defaultAcademic() {
     return [
         { id: generateId(), exam: "10th", board: "", year: "", perc: "" },
         { id: generateId(), exam: "12th", board: "", year: "", perc: "" },
-        { id: generateId(), exam: "B.A / Degree", board: "", year: "", perc: "" }
+        { id: generateId(), exam: "Graduation", board: "", year: "", perc: "" }
     ];
 }
 
