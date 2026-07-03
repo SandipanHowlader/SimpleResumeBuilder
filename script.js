@@ -212,8 +212,8 @@ function loadProfileData() {
         resetPhotoStudio();
         const watermarkEl = document.getElementById('in-watermark');
         const copyrightEl = document.getElementById('in-copyright');
-        if (watermarkEl) watermarkEl.value = "Learn & Conquer";
-        if (copyrightEl) copyrightEl.value = "© 2026 Learn & Conquer";
+        if (watermarkEl) watermarkEl.value = "";
+        if (copyrightEl) copyrightEl.value = "";
     }
     
     renderAcademicEditor();
