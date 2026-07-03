@@ -18,40 +18,43 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
-<body data-active-tab="editor"> <div class="app-container">
+<body data-active-tab="editor">
+
+    <div class="app-container">
         
         <div class="mobile-nav no-print">
-            <button class="nav-btn active" onclick="switchTab('editor')" id="tab-editor">
-                <i class="fa-solid fa-pen-to-square"></i><span>Edit</span>
-            </button>
-            <button class="nav-btn" onclick="switchTab('preview')" id="tab-preview">
-                <i class="fa-solid fa-eye"></i><span>Preview</span>
-            </button>
-            <button class="nav-btn" onclick="switchTab('export')" id="tab-export">
-                <i class="fa-solid fa-download"></i><span>Export</span>
-            </button>
+            <button class="nav-btn active" onclick="switchTab('editor')" id="tab-editor"><i class="fa-solid fa-pen-to-square"></i><span>Edit</span></button>
+            <button class="nav-btn" onclick="switchTab('preview')" id="tab-preview"><i class="fa-solid fa-eye"></i><span>Preview</span></button>
+            <button class="nav-btn" onclick="switchTab('export')" id="tab-export"><i class="fa-solid fa-download"></i><span>Export</span></button>
         </div>
 
         <div class="editor-section no-print" id="editor-panel">
             
             <div class="editor-header">
                 <div class="header-top">
-                    <h1><i class="fa-solid fa-layer-group"></i> Welcome to Simple Resume Builder with Sandipan</h1>
+                    <h2><i class="fa-solid fa-layer-group"></i> Welcome to Simple Resume Builder with Sandipan</h2>
                     <h2><i class="fa-solid fa-layer-group"></i> Document Setup</h2>
-                    <button class="theme-toggle" onclick="toggleDarkMode()" title="Toggle Dark Mode">
-                        <i class="fa-solid fa-moon" id="theme-icon"></i>
-                    </button>
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <span id="save-status" class="save-status"><i class="fa-solid fa-check-double"></i> Saved</span>
+                        <button class="theme-toggle" onclick="toggleDarkMode()" title="Toggle Dark Mode"><i class="fa-solid fa-moon" id="theme-icon"></i></button>
+                    </div>
                 </div>
 
-                <div class="progress-container">
-                    <div class="progress-header">
-                        <span>Profile Strength</span>
-                        <span id="progress-text">0%</span>
-                    </div>
-                    <div class="progress-bar-bg"><div class="progress-fill" id="progress-fill"></div></div>
+                <div class="profile-manager">
+                    <select id="profile-selector" onchange="switchProfile()"></select>
+                    <button class="btn-icon" onclick="createNewProfile()" title="New Profile"><i class="fa-solid fa-plus"></i></button>
+                    <button class="btn-icon" onclick="deleteProfile()" title="Delete Profile" style="color: #ef4444;"><i class="fa-solid fa-trash"></i></button>
                 </div>
                 
                 <div class="doc-controls">
+                    <div class="control-group full-row">
+                        <label>Template Layout</label>
+                        <select id="template-selector" onchange="applySettings()">
+                            <option value="layout-classic">Classic Bio-data</option>
+                            <option value="layout-modern">Modern Corporate</option>
+                            <option value="layout-minimal">Minimalist Elegance</option>
+                        </select>
+                    </div>
                     <div class="control-group">
                         <label>Typography</label>
                         <select id="font-selector" onchange="applySettings()">
@@ -70,15 +73,32 @@
                     </div>
                     <div class="control-group">
                         <label>Page Style</label>
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="border-toggle" onchange="applySettings()">
-                            <span class="slider"></span>
-                            <span class="toggle-label">Add Border</span>
-                        </label>
+                        <label class="toggle-switch"><input type="checkbox" id="border-toggle" onchange="applySettings()"><span class="slider"></span><span class="toggle-label">Add Border</span></label>
                     </div>
                     <div class="control-group">
-                        <label>Passport Photo</label>
-                        <input type="file" id="in-photo" accept="image/*" onchange="uploadPhoto(event)" class="file-input">
+                        <label>Pagination Guide</label>
+                        <label class="toggle-switch"><input type="checkbox" id="page-break-toggle" onchange="applySettings()"><span class="slider"></span><span class="toggle-label">Show A4 Lines</span></label>
+                    </div>
+                    
+                    <div class="control-group full-row" style="border-top: 1px dashed var(--border-color); padding-top: 15px; margin-top: 5px;">
+                        <label><i class="fa-solid fa-camera-retro"></i> Image Studio</label>
+                        <div class="dropzone" id="photo-dropzone" onclick="document.getElementById('in-photo').click()">
+                            <i class="fa-solid fa-cloud-arrow-up"></i>
+                            <span id="photo-status-text">Drag & Drop or Click to Upload Photo</span>
+                            <input type="file" id="in-photo" accept="image/*" onchange="uploadPhoto(event)" style="display: none;">
+                        </div>
+                        
+                        <div id="image-editor-controls" class="image-editor" style="display: none;">
+                            <div class="slider-group">
+                                <span><i class="fa-solid fa-sun"></i> Brightness</span>
+                                <input type="range" id="filter-bright" min="50" max="150" value="100" oninput="processCanvasImage()">
+                            </div>
+                            <div class="slider-group">
+                                <span><i class="fa-solid fa-circle-half-stroke"></i> Contrast</span>
+                                <input type="range" id="filter-contrast" min="50" max="150" value="100" oninput="processCanvasImage()">
+                            </div>
+                            <canvas id="photo-canvas" style="display: none;"></canvas>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -86,25 +106,18 @@
             <div class="section-card">
                 <div class="section-title-bar">
                     <h3><i class="fa-solid fa-user"></i> Personal Information</h3>
-                    <button class="btn-clear" onclick="clearForm()"><i class="fa-solid fa-trash-can"></i> Clear All</button>
                 </div>
                 <div class="form-grid">
-                    <div class="form-group full-width"><input type="text" id="in-name" oninput="updateData()" placeholder=" "><label>Full Name</label></div>
-                    <div class="form-group"><input type="text" id="in-fname" oninput="updateData()" placeholder=" "><label>Father's Name</label></div>
-                    <div class="form-group"><input type="text" id="in-mname" oninput="updateData()" placeholder=" "><label>Mother's Name</label></div>
-                    <div class="form-group"><input type="date" id="in-dob" oninput="updateData()" placeholder=" "><label class="active-label">Date of Birth</label></div>
-                    <div class="form-group">
-                        <select id="in-sex" oninput="updateData()"><option value=""></option><option value="Female">Female</option><option value="Male">Male</option><option value="Other">Other</option></select>
-                        <label class="active-label">Sex</label>
-                    </div>
-                    <div class="form-group"><input type="text" id="in-blood" oninput="updateData()" placeholder=" "><label>Blood Group</label></div>
-                    <div class="form-group">
-                        <select id="in-marital" oninput="updateData()"><option value=""></option><option value="Unmarried">Unmarried</option><option value="Married">Married</option></select>
-                        <label class="active-label">Marital Status</label>
-                    </div>
-                    <div class="form-group"><input type="text" id="in-nationality" oninput="updateData()" value="Indian" placeholder=" "><label>Nationality</label></div>
-                    <div class="form-group"><input type="text" id="in-religion" oninput="updateData()" placeholder=" "><label>Religion</label></div>
-                    <div class="form-group"><input type="text" id="in-caste" oninput="updateData()" placeholder=" "><label>Caste</label></div>
+                    <div class="form-group full-width"><input type="text" id="in-name" oninput="updateData()" placeholder=" "><label>Full Name *</label></div>
+                    <div class="form-group"><div class="input-wrap"><input type="text" id="in-fname" oninput="updateData()" placeholder=" "><label>Father's Name</label></div><button class="visibility-toggle" onclick="toggleVisibility('row-fname', this)"><i class="fa-solid fa-eye"></i></button></div>
+                    <div class="form-group"><div class="input-wrap"><input type="text" id="in-mname" oninput="updateData()" placeholder=" "><label>Mother's Name</label></div><button class="visibility-toggle" onclick="toggleVisibility('row-mname', this)"><i class="fa-solid fa-eye"></i></button></div>
+                    <div class="form-group"><div class="input-wrap"><input type="date" id="in-dob" oninput="updateData()" placeholder=" "><label class="active-label">Date of Birth</label></div><button class="visibility-toggle" onclick="toggleVisibility('row-dob', this)"><i class="fa-solid fa-eye"></i></button></div>
+                    <div class="form-group"><div class="input-wrap"><select id="in-sex" oninput="updateData()"><option value=""></option><option value="Female">Female</option><option value="Male">Male</option><option value="Other">Other</option></select><label class="active-label">Sex</label></div><button class="visibility-toggle" onclick="toggleVisibility('row-sex', this)"><i class="fa-solid fa-eye"></i></button></div>
+                    <div class="form-group"><div class="input-wrap"><input type="text" id="in-blood" oninput="updateData()" placeholder=" "><label>Blood Group</label></div><button class="visibility-toggle" onclick="toggleVisibility('row-blood', this)"><i class="fa-solid fa-eye"></i></button></div>
+                    <div class="form-group"><div class="input-wrap"><select id="in-marital" oninput="updateData()"><option value=""></option><option value="Unmarried">Unmarried</option><option value="Married">Married</option></select><label class="active-label">Marital Status</label></div><button class="visibility-toggle" onclick="toggleVisibility('row-marital', this)"><i class="fa-solid fa-eye"></i></button></div>
+                    <div class="form-group"><div class="input-wrap"><input type="text" id="in-nationality" oninput="updateData()" value="Indian" placeholder=" "><label>Nationality</label></div><button class="visibility-toggle" onclick="toggleVisibility('row-nationality', this)"><i class="fa-solid fa-eye"></i></button></div>
+                    <div class="form-group"><div class="input-wrap"><input type="text" id="in-religion" oninput="updateData()" placeholder=" "><label>Religion</label></div><button class="visibility-toggle" onclick="toggleVisibility('row-religion', this)"><i class="fa-solid fa-eye"></i></button></div>
+                    <div class="form-group"><div class="input-wrap"><input type="text" id="in-caste" oninput="updateData()" placeholder=" "><label>Caste</label></div><button class="visibility-toggle" onclick="toggleVisibility('row-caste', this)"><i class="fa-solid fa-eye"></i></button></div>
                 </div>
             </div>
 
@@ -112,55 +125,76 @@
                 <div class="section-title-bar"><h3><i class="fa-solid fa-address-book"></i> Contact Details</h3></div>
                 <div class="form-grid">
                     <div class="form-group full-width"><textarea id="in-address" rows="2" placeholder=" " oninput="updateData()"></textarea><label>Full Address</label></div>
-                    <div class="form-group full-width"><input type="tel" id="in-contact" oninput="updateData()" placeholder=" "><label>Contact No</label></div>
+                    <div class="form-group"><input type="tel" id="in-contact" oninput="updateData()" placeholder=" "><label>Contact No *</label></div>
+                    <div class="form-group"><div class="input-wrap"><input type="email" id="in-email" oninput="updateData()" placeholder=" "><label>Email Address</label></div><button class="visibility-toggle" onclick="toggleVisibility('row-email', this)"><i class="fa-solid fa-eye"></i></button></div>
                 </div>
             </div>
 
             <div class="section-card">
-                <div class="section-title-bar"><h3><i class="fa-solid fa-graduation-cap"></i> Academic Qualification</h3></div>
-                <div class="form-grid">
-                    <div class="form-group"><input type="text" id="in-10-board" oninput="updateData()" placeholder=" "><label>10th Board</label></div>
-                    <div class="form-group"><input type="text" id="in-10-year" oninput="updateData()" placeholder=" "><label>Passing Year</label></div>
-                    <div class="form-group"><input type="text" id="in-10-perc" oninput="updateData()" placeholder=" "><label>Percentage</label></div>
-                    
-                    <div class="form-group"><input type="text" id="in-12-board" oninput="updateData()" placeholder=" "><label>12th Board</label></div>
-                    <div class="form-group"><input type="text" id="in-12-year" oninput="updateData()" placeholder=" "><label>Passing Year</label></div>
-                    <div class="form-group"><input type="text" id="in-12-perc" oninput="updateData()" placeholder=" "><label>Percentage</label></div>
-
-                    <div class="form-group"><input type="text" id="in-deg-board" oninput="updateData()" placeholder=" "><label>Graduation University</label></div>
-                    <div class="form-group"><input type="text" id="in-deg-year" oninput="updateData()" placeholder=" "><label>Passing Year</label></div>
-                    <div class="form-group"><input type="text" id="in-deg-perc" oninput="updateData()" placeholder=" "><label>Percentage/GPA</label></div>
+                <div class="section-title-bar">
+                    <h3><i class="fa-solid fa-graduation-cap"></i> Academic Qualification</h3>
+                    <button class="visibility-toggle" onclick="toggleVisibility('section-academic', this)" style="position:relative; right:0;"><i class="fa-solid fa-eye"></i></button>
                 </div>
+                <div id="academic-container"></div>
+                <button class="btn-text full-btn" onclick="addAcademicRow()" style="margin-top: 10px; border-style: dashed;"><i class="fa-solid fa-plus"></i> Add Qualification</button>
             </div>
 
             <div class="section-card">
-                <div class="section-title-bar"><h3><i class="fa-solid fa-briefcase"></i> Other Details & Copyright</h3></div>
+                <div class="section-title-bar"><h3><i class="fa-solid fa-briefcase"></i> Other Details</h3></div>
                 <div class="form-grid">
-                    <div class="form-group full-width"><textarea id="in-work" rows="2" placeholder=" " oninput="updateData()"></textarea><label>Work Experience</label></div>
-                    <div class="form-group"><input type="text" id="in-hobbies" oninput="updateData()" placeholder=" "><label>Hobbies</label></div>
-                    <div class="form-group"><input type="text" id="in-lang" oninput="updateData()" placeholder=" "><label>Languages Known</label></div>
+                    <div class="form-group full-width"><div class="input-wrap"><textarea id="in-work" rows="2" placeholder=" " oninput="updateData()"></textarea><label>Work Experience</label></div><button class="visibility-toggle" onclick="toggleVisibility('row-work', this)"><i class="fa-solid fa-eye"></i></button></div>
+                    <div class="form-group full-width"><div class="input-wrap"><input type="text" id="in-hobbies" oninput="updateData()" placeholder=" "><label>Hobbies</label></div><button class="visibility-toggle" onclick="toggleVisibility('row-hobbies', this)"><i class="fa-solid fa-eye"></i></button></div>
+                    <div class="form-group full-width"><div class="input-wrap"><input type="text" id="in-lang" oninput="updateData()" placeholder=" "><label>Languages Known</label></div><button class="visibility-toggle" onclick="toggleVisibility('row-lang', this)"><i class="fa-solid fa-eye"></i></button></div>
+                </div>
+                
+                <div id="custom-fields-container" style="margin-top: 1.5rem; display: flex; flex-direction: column; gap: 10px;"></div>
+                <button class="btn-text full-btn" onclick="addCustomField()" style="margin-top: 10px; border-style: dashed;"><i class="fa-solid fa-plus"></i> Add Custom Row</button>
+
+                <div class="form-grid" style="margin-top: 1.5rem; border-top: 1px solid var(--border-color); padding-top: 1.5rem;">
                     <div class="form-group"><input type="date" id="in-date" oninput="updateData()" placeholder=" "><label class="active-label">Signature Date</label></div>
-                    <div class="form-group full-width"><input type="text" id="in-copyright" oninput="updateData()" value="" placeholder=" "><label>Document Copyright Text</label></div>
+                    <div class="form-group"><input type="text" id="in-watermark" oninput="updateData()" value="" placeholder=" "><label>Watermark Text</label></div>
+                    <div class="form-group full-width"><input type="text" id="in-copyright" oninput="updateData()" value="" placeholder=" "><label>Footer Copyright</label></div>
                 </div>
             </div>
 
             <div id="export-panel" class="section-card" style="border: 2px solid var(--accent-color);">
                 <div class="section-title-bar"><h3 style="color: var(--accent-color);"><i class="fa-solid fa-download"></i> Export Document</h3></div>
+                
+                <div class="progress-container" style="margin-top: 10px;">
+                    <div class="progress-header"><span>Profile Strength</span><span id="progress-text-export">0%</span></div>
+                    <div class="progress-bar-bg"><div class="progress-fill" id="progress-fill-export"></div></div>
+                </div>
+                
                 <div class="actions">
                     <button onclick="downloadPDF()" class="btn btn-primary"><i class="fa-solid fa-file-pdf"></i> PDF</button>
                     <button onclick="downloadImage()" class="btn" style="background: #8b5cf6; color: white;"><i class="fa-solid fa-image"></i> Image</button>
                     <button onclick="downloadWord()" class="btn" style="background: #10b981; color: white;"><i class="fa-solid fa-file-word"></i> Word</button>
                 </div>
+                
+                <div class="data-management">
+                    <button onclick="backupData()" class="btn-text"><i class="fa-solid fa-cloud-arrow-down"></i> Backup</button>
+                    <button onclick="document.getElementById('json-upload').click()" class="btn-text"><i class="fa-solid fa-cloud-arrow-up"></i> Restore</button>
+                    <input type="file" id="json-upload" accept=".json" style="display: none;" onchange="restoreData(event)">
+                </div>
             </div>
-            
-            <div class="app-footer">Powered by Learn & Conquer Engine</div>
+            <div class="app-footer">Powered by Sandipan Howlader</div>
         </div>
 
         <div class="preview-section" id="preview-panel">
+            
+            <div class="zoom-controls no-print">
+                <button onclick="zoomDoc('out')" title="Zoom Out"><i class="fa-solid fa-minus"></i></button>
+                <span id="zoom-level-text">100%</span>
+                <button onclick="zoomDoc('in')" title="Zoom In"><i class="fa-solid fa-plus"></i></button>
+                <button onclick="zoomDoc('reset')" title="Reset Zoom"><i class="fa-solid fa-expand"></i></button>
+            </div>
+
             <div class="preview-wrapper">
-                <div id="resume-document" class="resume-paper">
-                    
+                
+                <div id="resume-document" class="resume-paper layout-classic has-watermark">
                     <div class="doc-accent-strip" id="doc-strip"></div>
+                    <div class="doc-watermark" id="out-watermark">Learn & Conquer</div>
+                    
                     <div class="doc-border-wrap" id="doc-border">
                         
                         <div class="doc-header">
@@ -171,41 +205,41 @@
                         <div class="doc-body">
                             <table class="bio-layout-table">
                                 <tr><td class="label">Name</td><td class="colon">:</td><td id="out-name" class="value fw-bold doc-color-text"></td></tr>
-                                <tr><td class="label">Father's Name</td><td class="colon">:</td><td id="out-fname" class="value"></td></tr>
-                                <tr><td class="label">Mother's Name</td><td class="colon">:</td><td id="out-mname" class="value"></td></tr>
-                                <tr><td class="label">Date of Birth</td><td class="colon">:</td><td id="out-dob" class="value"></td></tr>
-                                <tr><td class="label">Sex</td><td class="colon">:</td><td id="out-sex" class="value"></td></tr>
-                                <tr><td class="label">Blood Group</td><td class="colon">:</td><td id="out-blood" class="value"></td></tr>
+                                <tr id="row-fname"><td class="label">Father's Name</td><td class="colon">:</td><td id="out-fname" class="value"></td></tr>
+                                <tr id="row-mname"><td class="label">Mother's Name</td><td class="colon">:</td><td id="out-mname" class="value"></td></tr>
+                                <tr id="row-dob"><td class="label">Date of Birth</td><td class="colon">:</td><td id="out-dob" class="value"></td></tr>
+                                <tr id="row-sex"><td class="label">Sex</td><td class="colon">:</td><td id="out-sex" class="value"></td></tr>
+                                <tr id="row-blood"><td class="label">Blood Group</td><td class="colon">:</td><td id="out-blood" class="value"></td></tr>
                                 <tr><td class="label">Address</td><td class="colon">:</td><td id="out-address" class="value"></td></tr>
                                 <tr><td class="label">Contact No</td><td class="colon">:</td><td id="out-contact" class="value fw-bold"></td></tr>
-                                <tr><td class="label">Caste</td><td class="colon">:</td><td id="out-caste" class="value"></td></tr>
-                                <tr><td class="label">Religion</td><td class="colon">:</td><td id="out-religion" class="value"></td></tr>
-                                <tr><td class="label">Nationality</td><td class="colon">:</td><td id="out-nationality" class="value"></td></tr>
-                                <tr><td class="label">Marital Status</td><td class="colon">:</td><td id="out-marital" class="value"></td></tr>
+                                <tr id="row-email"><td class="label">Email</td><td class="colon">:</td><td id="out-email" class="value"></td></tr>
+                                <tr id="row-caste"><td class="label">Caste</td><td class="colon">:</td><td id="out-caste" class="value"></td></tr>
+                                <tr id="row-religion"><td class="label">Religion</td><td class="colon">:</td><td id="out-religion" class="value"></td></tr>
+                                <tr id="row-nationality"><td class="label">Nationality</td><td class="colon">:</td><td id="out-nationality" class="value"></td></tr>
+                                <tr id="row-marital"><td class="label">Marital Status</td><td class="colon">:</td><td id="out-marital" class="value"></td></tr>
                             </table>
 
-                            <div class="doc-section-title">Academic Qualification</div>
-                            <table class="academic-table">
-                                <thead>
-                                    <tr>
-                                        <th>Examination</th>
-                                        <th>Board / University</th>
-                                        <th>Year of Passing</th>
-                                        <th>Percentage</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr><td>10th</td><td id="out-10-board"></td><td id="out-10-year"></td><td id="out-10-perc"></td></tr>
-                                    <tr><td>12th</td><td id="out-12-board"></td><td id="out-12-year"></td><td id="out-12-perc"></td></tr>
-                                    <tr><td>Graduation</td><td id="out-deg-board"></td><td id="out-deg-year"></td><td id="out-deg-perc"></td></tr>
-                                </tbody>
-                            </table>
+                            <div id="section-academic">
+                                <div class="doc-section-title">Academic Qualification</div>
+                                <table class="academic-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Examination</th>
+                                            <th>Board / University</th>
+                                            <th>Year of Passing</th>
+                                            <th>Percentage / GPA</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="out-academic-body"></tbody>
+                                </table>
+                            </div>
 
-                            <table class="bio-layout-table" style="margin-top: 20px;">
-                                <tr><td class="label">Work Experience</td><td class="colon">:</td><td id="out-work" class="value"></td></tr>
-                                <tr><td class="label">Hobbies</td><td class="colon">:</td><td id="out-hobbies" class="value"></td></tr>
-                                <tr><td class="label">Language known</td><td class="colon">:</td><td id="out-lang" class="value"></td></tr>
-                            </table>
+                            <div class="doc-section-title">Other Details</div>
+                            <table class="bio-layout-table" id="out-custom-body">
+                                <tr id="row-work"><td class="label">Work Experience</td><td class="colon">:</td><td id="out-work" class="value"></td></tr>
+                                <tr id="row-hobbies"><td class="label">Hobbies</td><td class="colon">:</td><td id="out-hobbies" class="value"></td></tr>
+                                <tr id="row-lang"><td class="label">Language known</td><td class="colon">:</td><td id="out-lang" class="value"></td></tr>
+                                </table>
 
                             <div class="footer-signatures">
                                 <div class="date-box"><span class="label">Date</span> <span class="colon">:</span> <span id="out-date" class="value"></span></div>
