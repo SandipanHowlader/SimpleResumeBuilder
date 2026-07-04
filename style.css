@@ -21,7 +21,7 @@ body { background-color: var(--bg-color); color: var(--text-main); transition: b
 .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
 .header-top h2 { font-size: 1.5rem; color: var(--accent-color); display: flex; align-items: center; gap: 10px; font-weight: 700;}
 .header-title{ display:flex; flex-direction:column; gap:8px; }
-.header-actions{ display:flex; align-items:center; gap:15px; }
+.header-actions{ display:flex; flex-direction:column; align-items:center; gap:15px; }
 
 .save-status { font-size: 0.85rem; color: #10b981; font-weight: 600; opacity: 0; transition: 0.3s; background: rgba(16, 185, 129, 0.1); padding: 4px 10px; border-radius: 20px;}
 .save-status.show { opacity: 1; }
