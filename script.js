@@ -109,6 +109,7 @@ window.onload = () => {
     const savedMargin = localStorage.getItem('doc_margin');
     const savedShape = localStorage.getItem('doc_photo_shape');
     const savedPaperSize = localStorage.getItem('doc_paper_size');
+    const savedDocTitle = localStorage.getItem('doc_title'); 
     
     const templateSel = document.getElementById('template-selector');
     if (templateSel && savedTemplate) templateSel.value = savedTemplate;
@@ -143,10 +144,14 @@ window.onload = () => {
     const paperSizeEl = document.getElementById('paper-size-selector');
     if (paperSizeEl && savedPaperSize) paperSizeEl.value = savedPaperSize;
 
+    const titleSel = document.getElementById('doc-title-selector');
+    if (titleSel && savedDocTitle) titleSel.value = savedDocTitle;
+
     setupSignaturePad();
     setupSpyEngine();
+    
+    loadProfileData(); 
     applySettings(); 
-    loadProfileData();
     setupDropzone();
 };
 
@@ -168,7 +173,7 @@ function setupSpyEngine() {
 }
 
 /* =========================================================
-   4. E-SIGNATURE PAD ENGINE (POINTER FIX)
+   4. E-SIGNATURE PAD ENGINE 
    ========================================================= */
 function setupSignaturePad() {
     sigCanvas = document.getElementById('sig-canvas');
@@ -184,7 +189,6 @@ function setupSignaturePad() {
         const clientX = e.touches ? e.touches[0].clientX : e.clientX;
         const clientY = e.touches ? e.touches[0].clientY : e.clientY;
         
-        // Exact coordinate mapping regardless of CSS scaling
         const scaleX = sigCanvas.width / rect.width;
         const scaleY = sigCanvas.height / rect.height;
         
@@ -510,7 +514,7 @@ function moveCustom(id, direction) {
 }
 
 /* =========================================================
-   7. CANVAS PHOTO STUDIO (WITH ADVANCED CROP & SCALE)
+   7. CANVAS PHOTO STUDIO
    ========================================================= */
 function setupDropzone() {
     const dropzone = document.getElementById('photo-dropzone');
@@ -566,11 +570,9 @@ function processCanvasImage() {
     const c = contrastEl ? contrastEl.value : 100;
     const s = scaleEl ? (scaleEl.value / 100) : 1;
     
-    // Set a strict internal resolution for high-quality export rendering
     canvas.width = 300; 
     canvas.height = 300;
     
-    // Mathematical center-cropping & scaling logic
     const imgAspect = baseImageObj.width / baseImageObj.height;
     let drawWidth = canvas.width;
     let drawHeight = canvas.height;
@@ -690,28 +692,31 @@ function updateData() {
     dataObj.custom = customFields;
     let filledCount = 0;
 
-    // Advanced Formatting Engine
+    // FIX: Decoupled Logic to always save even if output doesn't exist natively
     staticFields.forEach(field => {
         const inputElement = document.getElementById(`in-${field}`);
         const outputElement = document.getElementById(`out-${field}`);
         
-        if (inputElement && outputElement) {
+        if (inputElement) {
             let val = inputElement.value;
             
-            // Cleanup double spaces
-            val = val.replace(/\s{2,}/g, ' ');
+            // Do not clean spaces for URL fields to preserve link integrity
+            if (inputElement.type !== 'url') val = val.replace(/\s{2,}/g, ' ');
 
             if (fieldsToCapitalize.includes(field) && val) val = toTitleCase(val);
             
             dataObj[field] = val; 
             if (val.trim() !== '' && field !== 'copyright' && field !== 'watermark' && field !== 'qr') filledCount++;
 
-            if(inputElement.tagName === 'TEXTAREA') {
-                val = val.replace(/^[-*]\s+/gm, '• ');
-            }
+            if(outputElement) {
+                let displayVal = val;
+                if(inputElement.tagName === 'TEXTAREA') {
+                    displayVal = displayVal.replace(/^[-*]\s+/gm, '• ');
+                }
 
-            if (inputElement.type === 'date' && val) outputElement.innerText = formatSmartDate(val);
-            else outputElement.innerText = val;
+                if (inputElement.type === 'date' && displayVal) outputElement.innerText = formatSmartDate(displayVal);
+                else outputElement.innerText = displayVal;
+            }
         }
     });
 
@@ -719,28 +724,31 @@ function updateData() {
     const watermarkOutput = document.getElementById('out-watermark');
     if (watermarkInput && watermarkOutput) watermarkOutput.innerText = watermarkInput.value;
     
+    // QR Engine
     const qrInput = document.getElementById('in-qr');
     const qrBox = document.getElementById('out-qrcode');
     if(qrInput && qrBox) {
         qrBox.innerHTML = '';
         if(qrInput.value.trim() !== '') {
-            new QRCode(qrBox, { text: qrInput.value, width: 75, height: 75, colorDark : "#000000", colorLight : "#ffffff" });
+            new QRCode(qrBox, { text: qrInput.value.trim(), width: 75, height: 75, colorDark : "#000000", colorLight : "#ffffff" });
             qrBox.style.display = 'block';
         } else {
             qrBox.style.display = 'none';
         }
     }
 
+    // Title Controller
     const mainTitle = document.getElementById('doc-main-title');
     const docName = document.getElementById('in-name');
-    const tSel = document.getElementById('template-selector');
+    const titleSel = document.getElementById('doc-title-selector');
     
-    if(mainTitle && docName && tSel) {
-        if(tSel.value === 'layout-split' && docName.value.trim() !== '') {
-            mainTitle.innerText = docName.value;
+    if(mainTitle && docName && titleSel) {
+        let titleVal = titleSel.value;
+        if(titleVal === 'NAME') {
+            mainTitle.innerText = docName.value.trim() !== '' ? docName.value : "RESUME";
             mainTitle.style.borderBottom = 'none';
         } else {
-            mainTitle.innerText = "BIO-DATA";
+            mainTitle.innerText = titleVal;
             mainTitle.style.borderBottom = '';
         }
     }
@@ -767,6 +775,7 @@ function applySettings() {
     const marginEl = document.getElementById('doc-margin');
     const shapeEl = document.getElementById('photo-shape');
     const paperSizeEl = document.getElementById('paper-size-selector');
+    const titleSel = document.getElementById('doc-title-selector');
     
     const paper = document.getElementById('resume-document');
     const hexLabel = document.getElementById('color-hex');
@@ -779,13 +788,13 @@ function applySettings() {
     const marginValue = marginEl ? marginEl.value : '40';
     const shapeValue = shapeEl ? shapeEl.value : '0%';
     const paperSizeValue = paperSizeEl ? paperSizeEl.value : 'A4';
+    const titleValue = titleSel ? titleSel.value : 'BIO-DATA';
     
     const hasBorder = borderEl ? borderEl.checked : false;
     const hasWatermark = watermarkEl ? watermarkEl.checked : true;
     const hasPageBreaks = pageBreakEl ? pageBreakEl.checked : false;
     
     if (paper) {
-        // Reset classes
         paper.className = `resume-paper ${templateValue}`;
         if(paperSizeValue === 'US-Letter') paper.classList.add('page-letter');
         else paper.classList.add('page-a4');
@@ -814,6 +823,7 @@ function applySettings() {
     localStorage.setItem('doc_margin', marginValue);
     localStorage.setItem('doc_photo_shape', shapeValue);
     localStorage.setItem('doc_paper_size', paperSizeValue);
+    localStorage.setItem('doc_title', titleValue);
     localStorage.setItem('doc_border', hasBorder);
     localStorage.setItem('doc_watermark', hasWatermark);
     localStorage.setItem('doc_pagebreaks', hasPageBreaks);
