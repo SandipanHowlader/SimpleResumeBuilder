@@ -67,6 +67,16 @@
                             <option value="layout-split">Split Professional (2-Column)</option>
                         </select>
                     </div>
+
+                    <div class="control-group">
+                        <label>Document Title</label>
+                        <select id="doc-title-selector" onchange="updateData()">
+                            <option value="NAME">Use Full Name</option>
+                            <option value="RESUME">RESUME</option>
+                            <option value="CURRICULUM VITAE">CURRICULUM VITAE</option>
+                            <option value="BIO-DATA">BIO-DATA</option>
+                        </select>
+                    </div>
                     
                     <div class="control-group full-row slider-grid" style="background: var(--bg-color); padding: 15px; border-radius: 8px; border: 1px solid var(--border-color);">
                         <div class="slider-box">
@@ -292,7 +302,7 @@
                         
                         <div class="doc-header">
                             <div id="out-qrcode" class="qr-box"></div>
-                            <div class="header-content"><h1 id="doc-main-title">BIO-DATA</h1></div>
+                            <div class="header-content"><h1 id="doc-main-title">Resume</h1></div>
                             <div class="photo-box" id="out-photo"><span>Photo</span></div>
                         </div>
 
